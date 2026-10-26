@@ -129,9 +129,17 @@ execute:
     movw $clear_cmd, %si
     movw $cmdbuf, %bx
     call strcmp
-    jnz execute0
+    jnz execute5
 
         call clear
+
+    execute5:
+    movw $ftest_cmd, %si
+    movw $cmdbuf, %bx
+    call strcmp
+    jnz execute0
+
+        call feature_test
 
     execute0:
     ret
@@ -220,10 +228,13 @@ peek_cmd:               .asciz  "peek"
 peek:
     movw $cmdbuf, %si
     call tokeat
-    call atoi
 
     ret
 
-#include "stl16.S"
+ftest_cmd:              .asciz  "ftest"
+buf:                    .fill   32, 1, 0
+buf2:                   .fill   32, 1, 0
 
-.org 2048, 0
+.global feature_test
+feature_test:
+    ret

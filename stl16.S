@@ -1,8 +1,5 @@
 .code16
 
-.global _stl16main
-_stl16main:
-
 .global print
 print:
     mov $0x0E, %ah
@@ -61,12 +58,10 @@ strcmp:
         movb (%bx), %cl
         cmpb %al, %cl
         jne strcmp_end
-
-        test %al, %al
-        jz strcmp_end
-
-        incw %bx
-        jmp strcmp_loop
+            test %al, %al
+            jz strcmp_end
+                incw %bx
+                jmp strcmp_loop
     strcmp_end:
     popw %bx
     popw %si
@@ -88,6 +83,35 @@ strtok:
     strtok_end:
     movb $0, (%si)
     popw %si
+    ret
+
+.global strrev
+strrev:
+    pushw %bp
+    subw $4, %sp
+    movw %sp, %bp
+
+    movw %si, -2(%bp)
+    movw %di, -4(%bp)
+
+    call strlen
+    addw %ax, %di
+
+    strrev_loop:
+        decw %di 
+        cmpw -4(%bp), %di
+        je strrev_end
+            lodsb
+            movb %al, (%di)
+            jmp strrev_loop
+
+    strrev_end:
+
+    movw -2(%bp), %si
+    movw -4(%bp), %di
+
+    addw $4, %sp
+    popw %bp
     ret
 
 .global tokeat
@@ -136,13 +160,13 @@ atoi:
             jmp atoi_loop
 
     atoi_nfe:
-        movw $invalid_number, %si
-        call println
+    movw $invalid_number, %si
+    call println
 
-        popw %ax
-        xorw %ax, %ax
-        test %al, %al
-        jmp atoi_end
+    popw %ax
+    xorw %ax, %ax
+    test %al, %al
+    jmp atoi_end
 
     atoi_success:
     popw %ax
@@ -157,14 +181,72 @@ atoi:
 
 .global itoa
 itoa:
-    pushw %di
-    pushw %ax
-    
+    pushw %bp
+    subw $6, %sp
+    movw %sp, %bp
 
-    popw %ax
-    popw %di
+    movw %di, -2(%bp)
+    movw %ax, -6(%bp)
+
+    cmpw $0, %ax
+    jg itoa_pos0
+        negw %ax
+    itoa_pos0:
+
+    movw %ax, -4(%bp)
+
+    test %ax, %ax
+    jnz itoa0
+        movb $48, %al
+        stosb
+        movb $0, %al
+        stosb
+        jmp itoa_end1
+
+    itoa0:
+
+    itoa_loop:
+        movw -4(%bp), %ax
+        xorw %dx, %dx
+        movw $10, %cx
+        idivw %cx
+
+        movw %ax, -4(%bp)
+        testw %dx, %dx
+        jnz itoa1
+            testw %ax, %ax
+            jz itoa_end0
+
+        itoa1:
+        movb %dl, %al
+        addb $48, %al
+        stosb
+
+        jmp itoa_loop
+
+    itoa_end0:
+    movw -6(%bp), %ax
+    cmpw $0, %ax
+    jg itoa_pos1
+        movb $45, %al
+        stosb
+    itoa_pos1:
+
+    itoa_end1:
+    movb $0, (%di)
+    movw -2(%bp), %di
+
+    addw $6, %sp
+    popw %bp
     ret
+
+invalid_hex:            .asciz  "Invalid Hexadecimal."
 
 .global htoi
 htoi:
+    ret
+
+.global itoh
+itoh:
+
     ret
