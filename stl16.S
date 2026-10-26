@@ -254,7 +254,7 @@ htoi:
 
     lodsb
     cmpb $48, %al
-    jnz htoi
+    jnz htoi0
         cmpb $88, (%si)
         je htoi_0x
         cmpb $120, (%si)
@@ -263,6 +263,7 @@ htoi:
         jmp htoi0
 
         htoi_0x:
+        lodsb
         lodsb
     htoi0:
 
@@ -281,6 +282,8 @@ htoi:
             jb htoi_nfe
             cmpb $102, %al
             jbe htoi_lower
+
+            jmp htoi_nfe
 
             htoi_num:
             subb $48, %al
@@ -327,5 +330,54 @@ htoi:
 
 .global itoh
 itoh:
+    pushw %bp
+    movw %sp, %bp
+    subw $12, %sp
 
+    movw %di, -2(%bp)
+    movw %ax, -4(%bp)
+
+    leaw -12(%bp), %di
+
+    itoh_loop:
+        testw %ax, %ax
+        jz itoh_end
+
+        movw %ax, %cx
+        movw %ax, %dx
+        andw $0x000F, %cx
+        shrw $4, %dx
+
+        cmpb $10, %cl
+        jge itoh_alpha
+            addb $48, %cl
+            movb %cl, %al
+            stosb
+            jmp itoh_num
+        itoh_alpha:
+            addb $55, %cl
+            movb %cl, %al
+            stosb
+        itoh_num:
+
+        movw %dx, %ax
+        jmp itoh_loop
+
+    itoh_end:
+    
+    movb $120, %al
+    stosb
+    movb $48, %al
+    stosb
+    movb $0, %al
+    stosb
+
+    movw -2(%bp), %di
+    leaw -12(%bp), %si
+    call strrev
+
+    movw -4(%bp), %ax
+
+    add $12, %sp
+    popw %bp
     ret

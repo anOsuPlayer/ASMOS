@@ -237,15 +237,4 @@ buf2:                   .fill   32, 1, 0
 
 .global feature_test
 feature_test:
-    movw $cmdbuf, %si
-    call tokeat
-    
-    movw $312, %ax
-
-    movw $buf, %di
-    call itoa
-
-    movw $buf, %si
-    call println
-
     ret
