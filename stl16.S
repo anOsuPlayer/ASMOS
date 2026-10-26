@@ -88,19 +88,20 @@ strtok:
 .global strrev
 strrev:
     pushw %bp
-    subw $4, %sp
     movw %sp, %bp
+    subw $4, %sp
 
     movw %si, -2(%bp)
     movw %di, -4(%bp)
 
     call strlen
     addw %ax, %di
+    movb $0, (%di)
 
     strrev_loop:
-        decw %di 
         cmpw -4(%bp), %di
-        je strrev_end
+        jb strrev_end
+            decw %di 
             lodsb
             movb %al, (%di)
             jmp strrev_loop
@@ -182,10 +183,11 @@ atoi:
 .global itoa
 itoa:
     pushw %bp
-    subw $6, %sp
     movw %sp, %bp
+    subw $14, %sp
 
     movw %di, -2(%bp)
+    leaw -14(%bp), %di
     movw %ax, -6(%bp)
 
     cmpw $0, %ax
@@ -234,9 +236,12 @@ itoa:
 
     itoa_end1:
     movb $0, (%di)
-    movw -2(%bp), %di
 
-    addw $6, %sp
+    leaw -14(%bp), %si
+    movw -2(%bp), %di
+    call strrev
+
+    addw $14, %sp
     popw %bp
     ret
 
@@ -244,6 +249,80 @@ invalid_hex:            .asciz  "Invalid Hexadecimal."
 
 .global htoi
 htoi:
+    pushw %si
+    movw $0, %cx
+
+    lodsb
+    cmpb $48, %al
+    jnz htoi
+        cmpb $88, (%si)
+        je htoi_0x
+        cmpb $120, (%si)
+        je htoi_0x
+        
+        jmp htoi0
+
+        htoi_0x:
+        lodsb
+    htoi0:
+
+    htoi_loop:
+        testb %al, %al
+        jz htoi_success
+            cmpb $48, %al
+            jb htoi_nfe
+            cmpb $57, %al
+            jbe htoi_num
+            cmpb $65, %al
+            jb htoi_nfe
+            cmpb $70, %al
+            jbe htoi_upper
+            cmpb $97, %al
+            jb htoi_nfe
+            cmpb $102, %al
+            jbe htoi_lower
+
+            htoi_num:
+            subb $48, %al
+            movzxb %al, %bx
+            jmp htoi1
+
+            htoi_upper:
+            subb $55, %al
+            movzxb %al, %bx
+            jmp htoi1
+
+            htoi_lower:
+            subb $87, %al
+            movzxb %al, %bx
+            jmp htoi1
+            
+            htoi1:
+            movw %cx, %ax
+            shlw $4, %ax
+            addw %bx, %ax
+            movw %ax, %cx
+
+            lodsb
+            jmp htoi_loop
+
+    htoi_nfe:
+    movw $invalid_hex, %si
+    call println
+
+    popw %ax
+    xorw %ax, %ax
+    test %al, %al
+    jmp htoi_end
+
+    htoi_success:
+    movw %cx, %ax
+
+    movb $1, %cl
+    testb %cl, %cl
+
+    htoi_end:
+    popw %si
     ret
 
 .global itoh

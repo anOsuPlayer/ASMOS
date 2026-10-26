@@ -186,7 +186,7 @@ clear:
     movb $0x00, %al
     movb $0x07, %bh
     movw $0x0000, %cx
-    movw $0x18F4, %dx
+    movw $0x184F, %dx
     int $0x10
 
     movb $0x02, %ah
@@ -237,4 +237,15 @@ buf2:                   .fill   32, 1, 0
 
 .global feature_test
 feature_test:
+    movw $cmdbuf, %si
+    call tokeat
+    
+    movw $312, %ax
+
+    movw $buf, %di
+    call itoa
+
+    movw $buf, %si
+    call println
+
     ret
