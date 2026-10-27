@@ -2,6 +2,8 @@
 
 .global print
 print:
+    pushw %si
+
     mov $0x0E, %ah
     print_loop:
     lodsb
@@ -10,10 +12,13 @@ print:
         int $0x10
         jmp print_loop
     print_end:
+    
+    popw %si
     ret
 
 .global println
 println:
+    pushw %si
     mov $0x0E, %ah
 
     testw %si, %si
@@ -32,6 +37,7 @@ println:
     movb $'\r', %al
     int $0x10
 
+    popw %si
     ret
 
 .global strlen
@@ -237,9 +243,13 @@ itoa:
     itoa_end1:
     movb $0, (%di)
 
+    pushw %si
+
     leaw -14(%bp), %si
     movw -2(%bp), %di
     call strrev
+
+    popw %si
 
     addw $14, %sp
     popw %bp
@@ -339,6 +349,13 @@ itoh:
 
     leaw -12(%bp), %di
 
+    testw %ax, %ax
+    jnz itoh0
+        movb $48, %al
+        stosb
+        jmp itoh_end
+    itoh0:
+
     itoh_loop:
         testw %ax, %ax
         jz itoh_end
@@ -372,9 +389,13 @@ itoh:
     movb $0, %al
     stosb
 
+    pushw %si
+
     movw -2(%bp), %di
     leaw -12(%bp), %si
     call strrev
+
+    popw %si
 
     movw -4(%bp), %ax
 

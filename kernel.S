@@ -224,16 +224,113 @@ echo:
 
 peek_cmd:               .asciz  "peek"
 
+peek_rbegin:            .asciz  " : "
+peek_rbetween:          .asciz  " "
+
+peek_wrong_mem:         .asciz  "Invalid Memory Address."
+peek_wrong_count:       .asciz  "Invalid Bytes Count."
+
+buf:                    .fill   10, 1, 0
+
 .global peek
 peek:
+    pushw %bp
+    movw %sp, %bp
+    subw $12, %sp
+
     movw $cmdbuf, %si
     call tokeat
 
+    call htoi
+    jz peek_fault0
+    movw %ax, -2(%bp)
+
+    call tokeat
+
+    call atoi
+    jz peek_fault1
+    cmpw $0, %ax
+    jbe peek_fault1
+    movw %ax, -4(%bp)
+
+    movw -2(%bp), %si
+    peek_loop:
+        movw %si, -6(%bp)
+
+        movw %si, %ax
+        movw $buf, %di
+        call itoh
+
+        movw $buf, %si
+        call print
+
+        movw $peek_rbegin, %si
+        call print
+
+        movw -6(%bp), %si
+        
+        movw $4, %cx
+        cmpw -4(%bp), %cx
+        jg peek0
+            movw %cx, -8(%bp)
+            jmp peek1
+        peek0:
+            movw -4(%bp), %cx
+            movw %cx, -8(%bp)
+        peek1:
+
+        peek_loop0:
+            lodsb
+            xorb %ah, %ah
+
+            movw %si, -6(%bp)
+            movw $buf, %di
+            call itoh
+
+            movw $buf, %si
+            call print
+            movw $peek_rbetween, %si
+            call print
+
+            movw -6(%bp), %si
+
+            decw -8(%bp)
+            decw -4(%bp)
+
+            cmpw $0, -8(%bp)
+            jg peek_loop0
+            cmpw $0, -4(%bp)
+            jbe peek_success
+        
+        movw %si, -6(%bp)
+        xorw %si, %si
+        call println
+        movw -6(%bp), %si
+
+        jmp peek_loop
+
+    peek_fault0:
+        movw $peek_wrong_mem, %si
+        call println
+
+        jmp peek_end
+    
+    peek_fault1:
+        movw $peek_wrong_count, %si
+        call println
+
+        jmp peek_end
+
+    peek_success:
+    xorw %si, %si
+    call println
+
+    peek_end:
+    addw $12, %sp
+    popw %bp
     ret
 
 ftest_cmd:              .asciz  "ftest"
-buf:                    .fill   32, 1, 0
-buf2:                   .fill   32, 1, 0
 
 .global feature_test
 feature_test:
