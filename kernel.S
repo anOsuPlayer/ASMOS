@@ -126,14 +126,22 @@ execute:
         call peek
 
     execute4:
-    movw $clear_cmd, %si
+    movw $rdump_cmd, %si
     movw $cmdbuf, %bx
     call strcmp
     jnz execute5
 
-        call clear
+        call rdump
 
     execute5:
+    movw $clear_cmd, %si
+    movw $cmdbuf, %bx
+    call strcmp
+    jnz execute6
+
+        call clear
+
+    execute6:
     movw $ftest_cmd, %si
     movw $cmdbuf, %bx
     call strcmp
@@ -230,7 +238,7 @@ peek_rbetween:          .asciz  " "
 peek_wrong_mem:         .asciz  "Invalid Memory Address."
 peek_wrong_count:       .asciz  "Invalid Bytes Count."
 
-buf:                    .fill   10, 1, 0
+peek_buf:               .fill   10, 1, 0
 
 .global peek
 peek:
@@ -258,10 +266,10 @@ peek:
         movw %si, -6(%bp)
 
         movw %si, %ax
-        movw $buf, %di
+        movw $peek_buf, %di
         call itoh
 
-        movw $buf, %si
+        movw $peek_buf, %si
         call print
 
         movw $peek_rbegin, %si
@@ -284,10 +292,10 @@ peek:
             xorb %ah, %ah
 
             movw %si, -6(%bp)
-            movw $buf, %di
+            movw $peek_buf, %di
             call itoh
 
-            movw $buf, %si
+            movw $peek_buf, %si
             call print
             movw $peek_rbetween, %si
             call print
@@ -331,6 +339,7 @@ peek:
     ret
 
 ftest_cmd:              .asciz  "ftest"
+buf:                    .fill   32, 1, 0
 
 .global feature_test
 feature_test:

@@ -402,3 +402,60 @@ itoh:
     add $12, %sp
     popw %bp
     ret
+
+.global itob
+itob:
+    pushw %bp
+    movw %sp, %bp
+    subw $24, %sp
+
+    movw %di, -2(%bp)
+    movw %ax, -4(%bp)
+
+    leaw -24(%bp), %di
+
+    testw %ax, %ax
+    jnz itob0
+        movb $48, %al
+        stosb
+        jmp itob_end
+    itob0:
+
+    itob_loop:
+        testw %ax, %ax
+        jz itob_end
+
+        movw %ax, %cx
+        movw %ax, %dx
+        andw $0x0001, %cx
+        shrw $1, %dx
+
+        addb $48, %cl
+        movb %cl, %al
+        stosb
+
+        movw %dx, %ax
+        jmp itob_loop
+
+    itob_end:
+    
+    movb $98, %al
+    stosb
+    movb $48, %al
+    stosb
+    movb $0, %al
+    stosb
+
+    pushw %si
+
+    movw -2(%bp), %di
+    leaw -24(%bp), %si
+    call strrev
+
+    popw %si
+
+    movw -4(%bp), %ax
+
+    add $24, %sp
+    popw %bp
+    ret

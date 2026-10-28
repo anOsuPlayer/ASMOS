@@ -10,7 +10,7 @@ SECTIONS
         *(.bss)
         *(COMMON)
         
-        . = 2048 - 1;
+        . = 3072 - 1;
         BYTE(0x00)
     }
 

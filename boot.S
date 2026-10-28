@@ -20,7 +20,7 @@ _start:
     call bios_out
 
     movb $0x02, %ah
-    movb $0x04, %al
+    movb $0x06, %al
     movb $0x00, %ch
     movb $0x02, %cl
     movb $0x00, %dh
